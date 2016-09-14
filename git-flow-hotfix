@@ -45,11 +45,11 @@ init() {
 }
 
 usage() {
-	echo "usage: git flow hotfix [list] [-v]"
-	echo "       git flow hotfix start [-F] <version> [<base>]"
-	echo "       git flow hotfix finish [-Fsumpk] <version>"
-	echo "       git flow hotfix publish <version>"
-	echo "       git flow hotfix track <version>"
+	echo "usage: git-flow-pr hotfix [list] [-v]"
+	echo "       git-flow-pr hotfix start [-F] <version> [<base>]"
+	echo "       git-flow-pr hotfix finish [-Fsumpk] <version>"
+	echo "       git-flow-pr hotfix publish <version>"
+	echo "       git-flow-pr hotfix track <version>"
 }
 
 cmd_default() {
@@ -69,7 +69,7 @@ cmd_list() {
                 warn ""
                 warn "You can start a new hotfix branch:"
                 warn ""
-                warn "    git flow hotfix start <version> [<base>]"
+                warn "    git-flow-pr hotfix start <version> [<base>]"
                 warn ""
 		exit 0
 	fi
@@ -188,7 +188,7 @@ cmd_start() {
 	echo "- Start committing your hot fixes"
 	echo "- When done, run:"
 	echo
-	echo "     git flow hotfix finish '$VERSION'"
+	echo "     git-flow-pr hotfix finish '$VERSION'"
 	echo
 }
 
@@ -272,8 +272,46 @@ cmd_finish() {
 		require_branches_equal "$DEVELOP_BRANCH" "$ORIGIN/$DEVELOP_BRANCH"
 	fi
 
+    hub pull-request -m "Pull Request for $BRANCH into $MASTER_BRANCH" -b $MASTER_BRANCH
+
+    hub pull-request -m "Pull Request for $BRANCH into $DEVELOP_BRANCH" -b $DEVELOP_BRANCH
+}
+
+cmd_close() {
+	DEFINE_boolean fetch false "fetch from $ORIGIN before performing close" F
+	DEFINE_boolean sign false "sign the release tag cryptographically" s
+	DEFINE_string signingkey "" "use the given GPG-key for the digital signature (implies -s)" u
+	DEFINE_string message "" "use the given tag message" m
+	DEFINE_string messagefile "" "use the contents of the given file as tag message" f
+	DEFINE_boolean push false "push to $ORIGIN after performing close" p
+	DEFINE_boolean keep false "keep branch after performing close" k
+	DEFINE_boolean notag false "don't tag this release" n
+	parse_args "$@"
+	require_version_arg
+
+	# handle flags that imply other flags
+	if [ "$FLAGS_signingkey" != "" ]; then
+		FLAGS_sign=$FLAGS_TRUE
+	fi
+
+	# sanity checks
+	require_branch "$BRANCH"
+	require_clean_working_tree
+	if flag fetch; then
+		git_do fetch -q "$ORIGIN" "$MASTER_BRANCH" || \
+		  die "Could not fetch $MASTER_BRANCH from $ORIGIN."
+		git_do fetch -q "$ORIGIN" "$DEVELOP_BRANCH" || \
+		  die "Could not fetch $DEVELOP_BRANCH from $ORIGIN."
+	fi
+	if has "$ORIGIN/$MASTER_BRANCH" $(git_remote_branches); then
+		require_branches_equal "$MASTER_BRANCH" "$ORIGIN/$MASTER_BRANCH"
+	fi
+	if has "$ORIGIN/$DEVELOP_BRANCH" $(git_remote_branches); then
+		require_branches_equal "$DEVELOP_BRANCH" "$ORIGIN/$DEVELOP_BRANCH"
+	fi
+
 	# try to merge into master
-	# in case a previous attempt to finish this release branch has failed,
+	# in case a previous attempt to close this release branch has failed,
 	# but the merge into master was successful, we skip it now
 	if ! git_is_branch_merged_into "$BRANCH" "$MASTER_BRANCH"; then
 		git_do checkout "$MASTER_BRANCH" || \
@@ -285,7 +323,7 @@ cmd_finish() {
 
 	if noflag notag; then
 		# try to tag the release
-		# in case a previous attempt to finish this release branch has failed,
+		# in case a previous attempt to close this release branch has failed,
 		# but the tag was set successful, we skip it now
 		local tagname=$VERSION_PREFIX$VERSION
 		if ! git_tag_exists "$tagname"; then
@@ -295,12 +333,12 @@ cmd_finish() {
 			[ "$FLAGS_message" != "" ] && opts="$opts -m '$FLAGS_message'"
 			[ "$FLAGS_messagefile" != "" ] && opts="$opts -F '$FLAGS_messagefile'"
 			eval git_do tag $opts "$VERSION_PREFIX$VERSION" "$BRANCH" || \
-			die "Tagging failed. Please run finish again to retry."
+			die "Tagging failed. Please run close again to retry."
 		fi
 	fi
 
 	# try to merge into develop
-	# in case a previous attempt to finish this release branch has failed,
+	# in case a previous attempt to close this release branch has failed,
 	# but the merge into develop was successful, we skip it now
 	if ! git_is_branch_merged_into "$BRANCH" "$DEVELOP_BRANCH"; then
 		git_do checkout "$DEVELOP_BRANCH" || \

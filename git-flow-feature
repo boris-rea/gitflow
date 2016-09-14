@@ -44,15 +44,16 @@ init() {
 }
 
 usage() {
-	echo "usage: git flow feature [list] [-v]"
-	echo "       git flow feature start [-F] <name> [<base>]"
-	echo "       git flow feature finish [-rFkDS] [<name|nameprefix>]"
-	echo "       git flow feature publish <name>"
-	echo "       git flow feature track <name>"
-	echo "       git flow feature diff [<name|nameprefix>]"
-	echo "       git flow feature rebase [-i] [<name|nameprefix>]"
-	echo "       git flow feature checkout [<name|nameprefix>]"
-	echo "       git flow feature pull [-r] <remote> [<name>]"
+	echo "usage: git-flow-pr feature [list] [-v]"
+	echo "       git-flow-pr feature start [-F] <name> [<base>]"
+	echo "       git-flow-pr feature finish [-rFkDS] [<name|nameprefix>]"
+	echo "       git-flow-pr feature close [-rFkDS] [<name|nameprefix>]"
+	echo "       git-flow-pr feature publish <name>"
+	echo "       git-flow-pr feature track <name>"
+	echo "       git-flow-pr feature diff [<name|nameprefix>]"
+	echo "       git-flow-pr feature rebase [-i] [<name|nameprefix>]"
+	echo "       git-flow-pr feature checkout [<name|nameprefix>]"
+	echo "       git-flow-pr feature pull [-r] <remote> [<name>]"
 }
 
 cmd_default() {
@@ -72,7 +73,7 @@ cmd_list() {
 		warn ""
 		warn "You can start a new feature branch:"
 		warn ""
-		warn "    git flow feature start <name> [<base>]"
+		warn "    git-flow-pr feature start <name> [<base>]"
 		warn ""
 		exit 0
 	fi
@@ -225,7 +226,7 @@ cmd_start() {
 	echo ""
 	echo "Now, start committing on your feature. When done, use:"
 	echo ""
-	echo "     git flow feature finish $NAME"
+	echo "     git-flow-pr feature finish $NAME"
 	echo
 }
 
@@ -275,7 +276,7 @@ cmd_finish() {
 			echo "    git commit"
 			echo 
 			echo "You can then complete the finish by running it again:"
-			echo "    git flow feature finish $NAME"
+			echo "    git-flow-pr feature finish $NAME"
 			echo
 			exit 1
 		fi
@@ -305,24 +306,14 @@ cmd_finish() {
 			warn "Finish was aborted due to conflicts during rebase."
 			warn "Please finish the rebase manually now."
 			warn "When finished, re-run:"
-			warn "    git flow feature finish '$NAME' '$DEVELOP_BRANCH'"
+			warn "    git-flow-pr feature finish '$NAME' '$DEVELOP_BRANCH'"
 			exit 1
 		fi
 	fi
 
-	# merge into BASE
-	git_do checkout "$DEVELOP_BRANCH"
-	if [ "$(git rev-list -n2 "$DEVELOP_BRANCH..$BRANCH" | wc -l)" -eq 1 ]; then
-		git_do merge --ff "$BRANCH"
-	else
-		if noflag squash; then
-		    git_do merge --no-ff "$BRANCH"
-		else
-			git_do merge --squash "$BRANCH"
-			git_do commit
-			git_do merge "$BRANCH"
-		fi
-	fi
+    git_do checkout "$BRANCH"
+
+    hub pull-request -m "Pull Request for feature/$NAME" -b $DEVELOP_BRANCH
 
 	if [ $? -ne 0 ]; then
 		# oops.. we have a merge conflict!
@@ -335,7 +326,122 @@ cmd_finish() {
 		echo "    git commit"
 		echo 
 		echo "You can then complete the finish by running it again:"
-		echo "    git flow feature finish $NAME"
+		echo "    git-flow-pr feature finish $NAME"
+		echo
+		exit 1
+	fi
+
+	# when no merge conflict is detected, just clean up the feature branch
+	#helper_finish_cleanup
+}
+
+cmd_close() {
+	DEFINE_boolean fetch false "fetch from $ORIGIN before performing close" F
+	DEFINE_boolean rebase false "rebase instead of merge" r
+	DEFINE_boolean keep false "keep branch after performing close" k
+	DEFINE_boolean force_delete false "force delete feature branch after close" D
+	DEFINE_boolean squash false "squash feature during merge" S
+	parse_args "$@"
+	expand_nameprefix_arg_or_current
+
+	# sanity checks
+	require_branch "$BRANCH"
+
+	# detect if we're restoring from a merge conflict
+	if [ -f "$DOT_GIT_DIR/.gitflow/MERGE_BASE" ]; then
+		#
+		# TODO: detect that we're working on the correct branch here!
+		# The user need not necessarily have given the same $NAME twice here
+		# (although he/she should).
+		#
+
+		# TODO: git_is_clean_working_tree() should provide an alternative
+		# exit code for "unmerged changes in working tree", which we should
+		# actually be testing for here
+		if git_is_clean_working_tree; then
+			FINISH_BASE=$(cat "$DOT_GIT_DIR/.gitflow/MERGE_BASE")
+
+			# Since the working tree is now clean, either the user did a
+			# succesfull merge manually, or the merge was cancelled.
+			# We detect this using git_is_branch_merged_into()
+			if git_is_branch_merged_into "$BRANCH" "$FINISH_BASE"; then
+				rm -f "$DOT_GIT_DIR/.gitflow/MERGE_BASE"
+				helper_finish_cleanup
+				exit 0
+			else
+				# If the user cancelled the merge and decided to wait until later,
+				# that's fine. But we have to acknowledge this by removing the
+				# MERGE_BASE file and continuing normal execution of the close
+				rm -f "$DOT_GIT_DIR/.gitflow/MERGE_BASE"
+			fi
+		else
+			echo
+			echo "Merge conflicts not resolved yet, use:"
+			echo "    git mergetool"
+			echo "    git commit"
+			echo
+			echo "You can then complete the close by running it again:"
+			echo "    git-flow-pr feature close $NAME"
+			echo
+			exit 1
+		fi
+	fi
+
+	# sanity checks
+	require_clean_working_tree
+
+	# update local repo with remote changes first, if asked
+	if has "$ORIGIN/$BRANCH" $(git_remote_branches); then
+		if flag fetch; then
+			git_do fetch -q "$ORIGIN" "$BRANCH"
+			git_do fetch -q "$ORIGIN" "$DEVELOP_BRANCH"
+		fi
+	fi
+
+	if has "$ORIGIN/$BRANCH" $(git_remote_branches); then
+		require_branches_equal "$BRANCH" "$ORIGIN/$BRANCH"
+	fi
+	if has "$ORIGIN/$DEVELOP_BRANCH" $(git_remote_branches); then
+		require_branches_equal "$DEVELOP_BRANCH" "$ORIGIN/$DEVELOP_BRANCH"
+	fi
+
+	# if the user wants to rebase, do that first
+	if flag rebase; then
+		if ! git flow feature rebase "$NAME" "$DEVELOP_BRANCH"; then
+			warn "Finish was aborted due to conflicts during rebase."
+			warn "Please close the rebase manually now."
+			warn "When closed, re-run:"
+			warn "    git-flow-pr feature close '$NAME' '$DEVELOP_BRANCH'"
+			exit 1
+		fi
+	fi
+
+	 #merge into BASE
+    git_do checkout "$DEVELOP_BRANCH"
+    if [ "$(git rev-list -n2 "$DEVELOP_BRANCH..$BRANCH" | wc -l)" -eq 1 ]; then
+        git_do merge --ff "$BRANCH"
+    else
+        if noflag squash; then
+            git_do merge --no-ff "$BRANCH"
+        else
+            git_do merge --squash "$BRANCH"
+            git_do commit
+            git_do merge "$BRANCH"
+        fi
+    fi
+
+	if [ $? -ne 0 ]; then
+		# oops.. we have a merge conflict!
+		# write the given $DEVELOP_BRANCH to a temporary file (we need it later)
+		mkdir -p "$DOT_GIT_DIR/.gitflow"
+		echo "$DEVELOP_BRANCH" > "$DOT_GIT_DIR/.gitflow/MERGE_BASE"
+		echo
+		echo "There were merge conflicts. To resolve the merge conflict manually, use:"
+		echo "    git mergetool"
+		echo "    git commit"
+		echo
+		echo "You can then complete the close by running it again:"
+		echo "    git-flow-pr feature close $NAME"
 		echo
 		exit 1
 	fi

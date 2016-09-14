@@ -30,7 +30,7 @@
 prefix=/usr/local
 
 # files that need mode 755
-EXEC_FILES=git-flow
+EXEC_FILES=git-flow-pr
 
 # files that need mode 644
 SCRIPT_FILES =git-flow-init
