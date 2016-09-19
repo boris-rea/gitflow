@@ -1,26 +1,26 @@
 Installation
 ============
 
-Installing git-flow-pr manually
+Installing git prflow manually
 
 If you prefer a manual installation, please use the following instructions:
 
      git clone --recursive git@github.com:boris-rea/gitflow.git
-Then, you can install git-flow-pr, using:
+Then, you can install git prflow, using:
 
      sudo make install
-By default, git-flow-pr will be installed in /usr/local. To change the prefix where git-flow-pr will be installed, simply specify it explicitly, using:
+By default, git prflow will be installed in /usr/local. To change the prefix where git prflow will be installed, simply specify it explicitly, using:
 
      sudo make prefix=/opt/local install
 You can install it to your home directory (make sure $HOME/bin is in your $PATH):
 
      make install prefix=$HOME
-Or simply point your PATH environment variable to your git-flow-pr checkout directory.
+Or simply point your PATH environment variable to your git prflow checkout directory.
 
 Installation note:
-    git-flow-pr depends on the availability of the command line utility getopt, which may not be available in your Unix/Linux environment. Please use your favorite package manager to install getopt. For Cygwin, install the util-linux package to get getopt. If you use apt-get as your install manager, the package name is opt.
+    git prflow depends on the availability of the command line utility getopt, which may not be available in your Unix/Linux environment. Please use your favorite package manager to install getopt. For Cygwin, install the util-linux package to get getopt. If you use apt-get as your install manager, the package name is opt.
 
-git-flow-pr
+git prflow
 ===========
 
 License terms
@@ -36,7 +36,7 @@ in a Github fork, of course.
 
 To initialize a new repo with the basic branch structure, use:
   
-		git-flow-pr init [-d]
+		git prflow init [-d]
   
 This will then interactively prompt you with some questions on which branches
 you would like to use as development and production branches, and how you
@@ -50,36 +50,36 @@ The ``-d`` flag will accept all defaults.
 
 * To list/start/finish feature branches, use:
   
-  		git-flow-pr feature
-  		git-flow-pr feature start <name> [<base>]
-  		git-flow-pr feature finish <name>
+  		git prflow feature
+  		git prflow feature start <name> [<base>]
+  		git prflow feature finish <name>
   
   For feature branches, the `<base>` arg must be a commit on `develop`.
 
 * To push/pull a feature branch to the remote repository, use:
 
-  		git-flow-pr feature publish <name>
-        git-flow-pr feature pull <remote> <name>
+  		git prflow feature publish <name>
+        git prflow feature pull <remote> <name>
 
 * To list/start/finish release branches, use:
   
-  		git-flow-pr release
-  		git-flow-pr release start <release> [<base>]
-  		git-flow-pr release finish <release>
+  		git prflow release
+  		git prflow release start <release> [<base>]
+  		git prflow release finish <release>
   
   For release branches, the `<base>` arg must be a commit on `develop`.
   
 * To list/start/finish hotfix branches, use:
   
-  		git-flow-pr hotfix
-  		git-flow-pr hotfix start <release> [<base>]
-  		git-flow-pr hotfix finish <release>
+  		git prflow hotfix
+  		git prflow hotfix start <release> [<base>]
+  		git prflow hotfix finish <release>
   
   For hotfix branches, the `<base>` arg must be a commit on `master`.
 
 * To list/start support branches, use:
   
-  		git-flow-pr support
-  		git-flow-pr support start <release> <base>
+  		git prflow support
+  		git prflow support start <release> <base>
   
   For support branches, the `<base>` arg must be a commit on `master`.

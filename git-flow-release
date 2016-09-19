@@ -45,11 +45,11 @@ init() {
 }
 
 usage() {
-	echo "usage: git-flow-pr release [list] [-v]"
-	echo "       git-flow-pr release start [-F] <version> [<base>]"
-	echo "       git-flow-pr release finish [-FsumpkS] <version>"
-	echo "       git-flow-pr release publish <name>"
-	echo "       git-flow-pr release track <name>"
+	echo "usage: git prflow release [list] [-v]"
+	echo "       git prflow release start [-F] <version> [<base>]"
+	echo "       git prflow release finish [-FsumpkS] <version>"
+	echo "       git prflow release publish <name>"
+	echo "       git prflow release track <name>"
 }
 
 cmd_default() {
@@ -69,7 +69,7 @@ cmd_list() {
                 warn ""
                 warn "You can start a new release branch:"
                 warn ""
-                warn "    git-flow-pr release start <name> [<base>]"
+                warn "    git prflow release start <name> [<base>]"
                 warn ""
 		exit 0
 	fi
@@ -183,7 +183,7 @@ cmd_start() {
 	echo "- Start committing last-minute fixes in preparing your release"
 	echo "- When done, run:"
 	echo
-	echo "     git-flow-pr release finish '$VERSION'"
+	echo "     git prflow release finish '$VERSION'"
 	echo
 }
 

@@ -44,16 +44,16 @@ init() {
 }
 
 usage() {
-	echo "usage: git-flow-pr feature [list] [-v]"
-	echo "       git-flow-pr feature start [-F] <name> [<base>]"
-	echo "       git-flow-pr feature finish [-rFkDS] [<name|nameprefix>]"
-	echo "       git-flow-pr feature close [-rFkDS] [<name|nameprefix>]"
-	echo "       git-flow-pr feature publish <name>"
-	echo "       git-flow-pr feature track <name>"
-	echo "       git-flow-pr feature diff [<name|nameprefix>]"
-	echo "       git-flow-pr feature rebase [-i] [<name|nameprefix>]"
-	echo "       git-flow-pr feature checkout [<name|nameprefix>]"
-	echo "       git-flow-pr feature pull [-r] <remote> [<name>]"
+	echo "usage: git prflow feature [list] [-v]"
+	echo "       git prflow feature start [-F] <name> [<base>]"
+	echo "       git prflow feature finish [-rFkDS] [<name|nameprefix>]"
+	echo "       git prflow feature close [-rFkDS] [<name|nameprefix>]"
+	echo "       git prflow feature publish <name>"
+	echo "       git prflow feature track <name>"
+	echo "       git prflow feature diff [<name|nameprefix>]"
+	echo "       git prflow feature rebase [-i] [<name|nameprefix>]"
+	echo "       git prflow feature checkout [<name|nameprefix>]"
+	echo "       git prflow feature pull [-r] <remote> [<name>]"
 }
 
 cmd_default() {
@@ -73,7 +73,7 @@ cmd_list() {
 		warn ""
 		warn "You can start a new feature branch:"
 		warn ""
-		warn "    git-flow-pr feature start <name> [<base>]"
+		warn "    git prflow feature start <name> [<base>]"
 		warn ""
 		exit 0
 	fi
@@ -226,7 +226,7 @@ cmd_start() {
 	echo ""
 	echo "Now, start committing on your feature. When done, use:"
 	echo ""
-	echo "     git-flow-pr feature finish $NAME"
+	echo "     git prflow feature finish $NAME"
 	echo
 }
 
@@ -276,7 +276,7 @@ cmd_finish() {
 			echo "    git commit"
 			echo 
 			echo "You can then complete the finish by running it again:"
-			echo "    git-flow-pr feature finish $NAME"
+			echo "    git prflow feature finish $NAME"
 			echo
 			exit 1
 		fi
@@ -306,7 +306,7 @@ cmd_finish() {
 			warn "Finish was aborted due to conflicts during rebase."
 			warn "Please finish the rebase manually now."
 			warn "When finished, re-run:"
-			warn "    git-flow-pr feature finish '$NAME' '$DEVELOP_BRANCH'"
+			warn "    git prflow feature finish '$NAME' '$DEVELOP_BRANCH'"
 			exit 1
 		fi
 	fi
@@ -326,7 +326,7 @@ cmd_finish() {
 		echo "    git commit"
 		echo 
 		echo "You can then complete the finish by running it again:"
-		echo "    git-flow-pr feature finish $NAME"
+		echo "    git prflow feature finish $NAME"
 		echo
 		exit 1
 	fi
@@ -381,7 +381,7 @@ cmd_close() {
 			echo "    git commit"
 			echo
 			echo "You can then complete the close by running it again:"
-			echo "    git-flow-pr feature close $NAME"
+			echo "    git prflow feature close $NAME"
 			echo
 			exit 1
 		fi
@@ -411,7 +411,7 @@ cmd_close() {
 			warn "Finish was aborted due to conflicts during rebase."
 			warn "Please close the rebase manually now."
 			warn "When closed, re-run:"
-			warn "    git-flow-pr feature close '$NAME' '$DEVELOP_BRANCH'"
+			warn "    git prflow feature close '$NAME' '$DEVELOP_BRANCH'"
 			exit 1
 		fi
 	fi
@@ -441,7 +441,7 @@ cmd_close() {
 		echo "    git commit"
 		echo
 		echo "You can then complete the close by running it again:"
-		echo "    git-flow-pr feature close $NAME"
+		echo "    git prflow feature close $NAME"
 		echo
 		exit 1
 	fi

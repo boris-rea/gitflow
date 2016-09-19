@@ -39,7 +39,7 @@
 GITFLOW_VERSION=0.4.2-pre
 
 usage() {
-	echo "usage: git-flow-pr version"
+	echo "usage: git prflow version"
 }
 
 cmd_default() {
@@ -49,4 +49,8 @@ cmd_default() {
 cmd_help() {
 	usage
 	exit 0
+}
+
+init() {
+	echo "Version"
 }
