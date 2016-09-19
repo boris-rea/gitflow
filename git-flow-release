@@ -187,7 +187,7 @@ cmd_start() {
 	echo
 }
 
-cmd_close() {
+cmd_finish() {
 	DEFINE_boolean fetch false "fetch from $ORIGIN before performing close" F
 	DEFINE_boolean sign false "sign the release tag cryptographically" s
 	DEFINE_string signingkey "" "use the given GPG-key for the digital signature (implies -s)" u
@@ -227,7 +227,7 @@ cmd_close() {
     hub pull-request -m "Pull Request for $BRANCH into $DEVELOP_BRANCH" -b $DEVELOP_BRANCH
 }
 
-cmd_finish() {
+cmd_close() {
 	DEFINE_boolean fetch false "fetch from $ORIGIN before performing finish" F
 	DEFINE_boolean sign false "sign the release tag cryptographically" s
 	DEFINE_string signingkey "" "use the given GPG-key for the digital signature (implies -s)" u
